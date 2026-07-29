@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package inference.v1;
+
+// Standard, engine-agnostic model configuration.
+// REQ-2.1: covers model source, resource requirements, replica count.
+// Values below are modeled on the three vLLM deployments currently running.
+message ModelConfig {
+  // Short unique name for this deployment, e.g. "llama", "qwen", "deepseek".
+  // Maps to vLLM --served-model-name.
+  string model_id = 1;
+
+  // Where the model weights come from (staged in GCS).
+  ModelSource source = 2;
+
+  // CPU / memory / GPU requirements.
+  ResourceRequirements resources = 3;
+
+  // Number of identical copies (pods) to run. e.g. 1
+  int32 replica_count = 4;
+
+  // Max sequence length the model serves. e.g. 8192
+  // Maps to vLLM --max-model-len.
+  int32 max_model_len = 5;
+
+  // Engine-specific overrides not covered by the standard fields above.
+  // REQ-2.2: passthrough. e.g. {"tool-call-parser": "llama3_json",
+  // "gpu-memory-utilization": "0.90"}. Must NOT override standard fields.
+  map<string, string> engine_params = 6;
+}
+
+// Where to load the model weights from.
+message ModelSource {
+  // e.g. "gs://intern-501105-model-weights/llama"
+  string uri = 1;
+}
+
+// CPU, memory, and GPU requirements.
+message ResourceRequirements {
+  // CPU cores, e.g. "2"
+  string cpu = 1;
+
+  // Memory, e.g. "10Gi"
+  string memory = 2;
+
+  // Number of GPUs, e.g. 1
+  int32 gpu_count = 3;
+
+  // GPU accelerator type, e.g. "nvidia-l4"
+  string gpu_type = 4;
+}
