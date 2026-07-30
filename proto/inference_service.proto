@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package inference.v1;
+
+import "model_config.proto";
+
+// Control-plane API for deploying inference engines.
+service InferenceEngineService {
+  // REQ-1.1: deploy a supported engine into a target cluster.
+  rpc DeployInferenceEngine(DeployInferenceEngineRequest)
+      returns (DeployInferenceEngineResponse);
+}
+
+// Supported engine types (REQ-1.1: enumerated and documented).
+// UNSPECIFIED is invalid and is rejected at validation.
+enum EngineType {
+  ENGINE_TYPE_UNSPECIFIED = 0;
+  ENGINE_TYPE_VLLM = 1;
+}
+
+message DeployInferenceEngineRequest {
+  // Which engine to deploy.
+  EngineType engine_type = 1;
+
+  // Target cluster reference, e.g. "inference-cluster".
+  string cluster_ref = 2;
+
+  // Standard model configuration (from model_config.proto).
+  ModelConfig model_config = 3;
+}
+
+// Lifecycle state of a deployment.
+enum DeploymentStatus {
+  DEPLOYMENT_STATUS_UNSPECIFIED = 0;
+  DEPLOYMENT_STATUS_PENDING = 1;
+  DEPLOYMENT_STATUS_RUNNING = 2;
+  DEPLOYMENT_STATUS_FAILED = 3;
+}
+
+message DeployInferenceEngineResponse {
+  // Identifier for the created deployment.
+  string deployment_id = 1;
+
+  // Current state of the deployment.
+  DeploymentStatus status = 2;
+
+  // Human-readable detail (especially on error).
+  string message = 3;
+}
