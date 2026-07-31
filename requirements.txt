@@ -1,5 +1,9 @@
-grpcio==1.83.0
-grpcio-tools==1.83.0
+﻿# runtime
+grpcio>=1.60
 protobuf==7.35.1
-setuptools==83.0.0
-typing_extensions==4.16.0
+kubernetes>=29.0
+pyyaml>=6.0
+
+# dev only — regenerating stubs from .proto. Needs a C++ toolchain on Windows,
+# or a matching prebuilt wheel. Not needed to run the server; stubs are committed.
+# grpcio-tools

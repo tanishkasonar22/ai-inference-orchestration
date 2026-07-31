@@ -26,7 +26,12 @@ if _version_not_supported:
 
 
 class InferenceEngineServiceStub:
-    """Control-plane API for deploying inference engines.
+    """Control-plane API for deploying inference engines onto KServe.
+
+    Merge note: package + RPC style from Tanishka's original. Changes: enum now
+    covers TWO heterogeneous engines (the >=2-engine constraint), status is
+    acceptance-shaped for KServe's async reconcile (ACCEPTED != serving), and
+    the Configure/GetStatus/Delete RPCs are added.
     """
 
     def __init__(self, channel):
@@ -40,14 +45,55 @@ class InferenceEngineServiceStub:
                 request_serializer=inference__service__pb2.DeployInferenceEngineRequest.SerializeToString,
                 response_deserializer=inference__service__pb2.DeployInferenceEngineResponse.FromString,
                 _registered_method=True)
+        self.ConfigureModel = channel.unary_unary(
+                '/inference.v1.InferenceEngineService/ConfigureModel',
+                request_serializer=inference__service__pb2.ConfigureModelRequest.SerializeToString,
+                response_deserializer=inference__service__pb2.ConfigureModelResponse.FromString,
+                _registered_method=True)
+        self.GetDeploymentStatus = channel.unary_unary(
+                '/inference.v1.InferenceEngineService/GetDeploymentStatus',
+                request_serializer=inference__service__pb2.GetDeploymentStatusRequest.SerializeToString,
+                response_deserializer=inference__service__pb2.GetDeploymentStatusResponse.FromString,
+                _registered_method=True)
+        self.DeleteDeployment = channel.unary_unary(
+                '/inference.v1.InferenceEngineService/DeleteDeployment',
+                request_serializer=inference__service__pb2.DeleteDeploymentRequest.SerializeToString,
+                response_deserializer=inference__service__pb2.DeleteDeploymentResponse.FromString,
+                _registered_method=True)
 
 
 class InferenceEngineServiceServicer:
-    """Control-plane API for deploying inference engines.
+    """Control-plane API for deploying inference engines onto KServe.
+
+    Merge note: package + RPC style from Tanishka's original. Changes: enum now
+    covers TWO heterogeneous engines (the >=2-engine constraint), status is
+    acceptance-shaped for KServe's async reconcile (ACCEPTED != serving), and
+    the Configure/GetStatus/Delete RPCs are added.
     """
 
     def DeployInferenceEngine(self, request, context):
-        """REQ-1.1: deploy a supported engine into a target cluster.
+        """REQ-1.1: deploy a supported engine into the cluster.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ConfigureModel(self, request, context):
+        """Runtime reconfiguration without delete+recreate (REQ-2.2 / Objective 2).
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDeploymentStatus(self, request, context):
+        """Query async reconcile / serving state.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteDeployment(self, request, context):
+        """Tear down a deployment.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -61,6 +107,21 @@ def add_InferenceEngineServiceServicer_to_server(servicer, server):
                     request_deserializer=inference__service__pb2.DeployInferenceEngineRequest.FromString,
                     response_serializer=inference__service__pb2.DeployInferenceEngineResponse.SerializeToString,
             ),
+            'ConfigureModel': grpc.unary_unary_rpc_method_handler(
+                    servicer.ConfigureModel,
+                    request_deserializer=inference__service__pb2.ConfigureModelRequest.FromString,
+                    response_serializer=inference__service__pb2.ConfigureModelResponse.SerializeToString,
+            ),
+            'GetDeploymentStatus': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDeploymentStatus,
+                    request_deserializer=inference__service__pb2.GetDeploymentStatusRequest.FromString,
+                    response_serializer=inference__service__pb2.GetDeploymentStatusResponse.SerializeToString,
+            ),
+            'DeleteDeployment': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteDeployment,
+                    request_deserializer=inference__service__pb2.DeleteDeploymentRequest.FromString,
+                    response_serializer=inference__service__pb2.DeleteDeploymentResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'inference.v1.InferenceEngineService', rpc_method_handlers)
@@ -70,7 +131,12 @@ def add_InferenceEngineServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class InferenceEngineService:
-    """Control-plane API for deploying inference engines.
+    """Control-plane API for deploying inference engines onto KServe.
+
+    Merge note: package + RPC style from Tanishka's original. Changes: enum now
+    covers TWO heterogeneous engines (the >=2-engine constraint), status is
+    acceptance-shaped for KServe's async reconcile (ACCEPTED != serving), and
+    the Configure/GetStatus/Delete RPCs are added.
     """
 
     @staticmethod
@@ -90,6 +156,87 @@ class InferenceEngineService:
             '/inference.v1.InferenceEngineService/DeployInferenceEngine',
             inference__service__pb2.DeployInferenceEngineRequest.SerializeToString,
             inference__service__pb2.DeployInferenceEngineResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ConfigureModel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/inference.v1.InferenceEngineService/ConfigureModel',
+            inference__service__pb2.ConfigureModelRequest.SerializeToString,
+            inference__service__pb2.ConfigureModelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDeploymentStatus(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/inference.v1.InferenceEngineService/GetDeploymentStatus',
+            inference__service__pb2.GetDeploymentStatusRequest.SerializeToString,
+            inference__service__pb2.GetDeploymentStatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteDeployment(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/inference.v1.InferenceEngineService/DeleteDeployment',
+            inference__service__pb2.DeleteDeploymentRequest.SerializeToString,
+            inference__service__pb2.DeleteDeploymentResponse.FromString,
             options,
             channel_credentials,
             insecure,

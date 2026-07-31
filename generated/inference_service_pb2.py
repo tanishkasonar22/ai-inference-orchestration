@@ -25,21 +25,33 @@ _sym_db = _symbol_database.Default()
 import model_config_pb2 as model__config__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17inference_service.proto\x12\x0cinference.v1\x1a\x12model_config.proto\"\x93\x01\n\x1c\x44\x65ployInferenceEngineRequest\x12-\n\x0b\x65ngine_type\x18\x01 \x01(\x0e\x32\x18.inference.v1.EngineType\x12\x13\n\x0b\x63luster_ref\x18\x02 \x01(\t\x12/\n\x0cmodel_config\x18\x03 \x01(\x0b\x32\x19.inference.v1.ModelConfig\"w\n\x1d\x44\x65ployInferenceEngineResponse\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12.\n\x06status\x18\x02 \x01(\x0e\x32\x1e.inference.v1.DeploymentStatus\x12\x0f\n\x07message\x18\x03 \x01(\t*?\n\nEngineType\x12\x1b\n\x17\x45NGINE_TYPE_UNSPECIFIED\x10\x00\x12\x14\n\x10\x45NGINE_TYPE_VLLM\x10\x01*\x91\x01\n\x10\x44\x65ploymentStatus\x12!\n\x1d\x44\x45PLOYMENT_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n\x19\x44\x45PLOYMENT_STATUS_PENDING\x10\x01\x12\x1d\n\x19\x44\x45PLOYMENT_STATUS_RUNNING\x10\x02\x12\x1c\n\x18\x44\x45PLOYMENT_STATUS_FAILED\x10\x03\x32\x8a\x01\n\x16InferenceEngineService\x12p\n\x15\x44\x65ployInferenceEngine\x12*.inference.v1.DeployInferenceEngineRequest\x1a+.inference.v1.DeployInferenceEngineResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17inference_service.proto\x12\x0cinference.v1\x1a\x12model_config.proto\"\x93\x01\n\x1c\x44\x65ployInferenceEngineRequest\x12-\n\x0b\x65ngine_type\x18\x01 \x01(\x0e\x32\x18.inference.v1.EngineType\x12\x13\n\x0b\x63luster_ref\x18\x02 \x01(\t\x12/\n\x0cmodel_config\x18\x03 \x01(\x0b\x32\x19.inference.v1.ModelConfig\"w\n\x1d\x44\x65ployInferenceEngineResponse\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12.\n\x06status\x18\x02 \x01(\x0e\x32\x1e.inference.v1.DeploymentStatus\x12\x0f\n\x07message\x18\x03 \x01(\t\"r\n\x15\x43onfigureModelRequest\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\x12/\n\x0cmodel_config\x18\x03 \x01(\x0b\x32\x19.inference.v1.ModelConfig\"p\n\x16\x43onfigureModelResponse\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12.\n\x06status\x18\x02 \x01(\x0e\x32\x1e.inference.v1.DeploymentStatus\x12\x0f\n\x07message\x18\x03 \x01(\t\"F\n\x1aGetDeploymentStatusRequest\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x82\x01\n\x1bGetDeploymentStatusResponse\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12.\n\x06status\x18\x02 \x01(\x0e\x32\x1e.inference.v1.DeploymentStatus\x12\x0f\n\x07message\x18\x03 \x01(\t\x12\x0b\n\x03url\x18\x04 \x01(\t\"C\n\x17\x44\x65leteDeploymentRequest\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\"S\n\x18\x44\x65leteDeploymentResponse\x12\x15\n\rdeployment_id\x18\x01 \x01(\t\x12\x0f\n\x07\x64\x65leted\x18\x02 \x01(\x08\x12\x0f\n\x07message\x18\x03 \x01(\t*c\n\nEngineType\x12\x1b\n\x17\x45NGINE_TYPE_UNSPECIFIED\x10\x00\x12 \n\x1c\x45NGINE_TYPE_VLLM_HUGGINGFACE\x10\x01\x12\x16\n\x12\x45NGINE_TYPE_TRITON\x10\x02*\xd1\x01\n\x10\x44\x65ploymentStatus\x12!\n\x1d\x44\x45PLOYMENT_STATUS_UNSPECIFIED\x10\x00\x12\x1e\n\x1a\x44\x45PLOYMENT_STATUS_ACCEPTED\x10\x01\x12\x1e\n\x1a\x44\x45PLOYMENT_STATUS_REJECTED\x10\x02\x12\x1c\n\x18\x44\x45PLOYMENT_STATUS_FAILED\x10\x03\x12\x1b\n\x17\x44\x45PLOYMENT_STATUS_READY\x10\x04\x12\x1f\n\x1b\x44\x45PLOYMENT_STATUS_NOT_FOUND\x10\x05\x32\xb6\x03\n\x16InferenceEngineService\x12p\n\x15\x44\x65ployInferenceEngine\x12*.inference.v1.DeployInferenceEngineRequest\x1a+.inference.v1.DeployInferenceEngineResponse\x12[\n\x0e\x43onfigureModel\x12#.inference.v1.ConfigureModelRequest\x1a$.inference.v1.ConfigureModelResponse\x12j\n\x13GetDeploymentStatus\x12(.inference.v1.GetDeploymentStatusRequest\x1a).inference.v1.GetDeploymentStatusResponse\x12\x61\n\x10\x44\x65leteDeployment\x12%.inference.v1.DeleteDeploymentRequest\x1a&.inference.v1.DeleteDeploymentResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'inference_service_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_ENGINETYPE']._serialized_start=332
-  _globals['_ENGINETYPE']._serialized_end=395
-  _globals['_DEPLOYMENTSTATUS']._serialized_start=398
-  _globals['_DEPLOYMENTSTATUS']._serialized_end=543
+  _globals['_ENGINETYPE']._serialized_start=921
+  _globals['_ENGINETYPE']._serialized_end=1020
+  _globals['_DEPLOYMENTSTATUS']._serialized_start=1023
+  _globals['_DEPLOYMENTSTATUS']._serialized_end=1232
   _globals['_DEPLOYINFERENCEENGINEREQUEST']._serialized_start=62
   _globals['_DEPLOYINFERENCEENGINEREQUEST']._serialized_end=209
   _globals['_DEPLOYINFERENCEENGINERESPONSE']._serialized_start=211
   _globals['_DEPLOYINFERENCEENGINERESPONSE']._serialized_end=330
-  _globals['_INFERENCEENGINESERVICE']._serialized_start=546
-  _globals['_INFERENCEENGINESERVICE']._serialized_end=684
+  _globals['_CONFIGUREMODELREQUEST']._serialized_start=332
+  _globals['_CONFIGUREMODELREQUEST']._serialized_end=446
+  _globals['_CONFIGUREMODELRESPONSE']._serialized_start=448
+  _globals['_CONFIGUREMODELRESPONSE']._serialized_end=560
+  _globals['_GETDEPLOYMENTSTATUSREQUEST']._serialized_start=562
+  _globals['_GETDEPLOYMENTSTATUSREQUEST']._serialized_end=632
+  _globals['_GETDEPLOYMENTSTATUSRESPONSE']._serialized_start=635
+  _globals['_GETDEPLOYMENTSTATUSRESPONSE']._serialized_end=765
+  _globals['_DELETEDEPLOYMENTREQUEST']._serialized_start=767
+  _globals['_DELETEDEPLOYMENTREQUEST']._serialized_end=834
+  _globals['_DELETEDEPLOYMENTRESPONSE']._serialized_start=836
+  _globals['_DELETEDEPLOYMENTRESPONSE']._serialized_end=919
+  _globals['_INFERENCEENGINESERVICE']._serialized_start=1235
+  _globals['_INFERENCEENGINESERVICE']._serialized_end=1673
 # @@protoc_insertion_point(module_scope)
