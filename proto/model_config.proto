@@ -1,51 +1,64 @@
 syntax = "proto3";
-
 package inference.v1;
 
-// Standard, engine-agnostic model configuration.
-// REQ-2.1: covers model source, resource requirements, replica count.
-// Values below are modeled on the three vLLM deployments currently running.
+// Standard, engine-agnostic model configuration (REQ-2.1).
+// Governed core = engine-AGNOSTIC fields every runtime needs. Engine-specifics
+// go in engine_params (REQ-2.2), never as promoted governed fields.
+//
+// Merge note: file split + ModelSource wrapper are from Tanishka's original.
+// Changes from her version: max_model_len demoted into engine_params (it is
+// vLLM-specific; Triton has no equivalent), and namespace/service_account/
+// credentials added for parity with the working control plane.
 message ModelConfig {
   // Short unique name for this deployment, e.g. "llama", "qwen", "deepseek".
-  // Maps to vLLM --served-model-name.
+  // -> InferenceService metadata.name (and vLLM --served-model-name).
   string model_id = 1;
 
-  // Where the model weights come from (staged in GCS).
+  // Where the model weights come from (staged in GCS). -> storageUri.
   ModelSource source = 2;
 
   // CPU / memory / GPU requirements.
   ResourceRequirements resources = 3;
 
-  // Number of identical copies (pods) to run. e.g. 1
+  // Number of identical copies (pods). -> predictor replicas. e.g. 1
   int32 replica_count = 4;
 
-  // Max sequence length the model serves. e.g. 8192
-  // Maps to vLLM --max-model-len.
-  int32 max_model_len = 5;
+  // Target namespace. -> metadata.namespace (defaults to "default" if empty).
+  string namespace = 5;
 
-  // Engine-specific overrides not covered by the standard fields above.
-  // REQ-2.2: passthrough. e.g. {"tool-call-parser": "llama3_json",
-  // "gpu-memory-utilization": "0.90"}. Must NOT override standard fields.
-  map<string, string> engine_params = 6;
+  // Auth for pulling weights. Prefer service_account (Workload Identity) for
+  // gs://; use credentials for hf:// / private registries.
+  string service_account = 6;   // -> predictor.serviceAccountName
+  CredentialsRef credentials = 7;
+
+  // REQ-2.2 — engine-specific passthrough. Engine-agnostic map; a per-engine
+  // adapter decides how it is applied (vLLM/HF -> args; Triton -> its own
+  // arg/env style). Must NOT override the governed fields above.
+  // e.g. {"max-model-len":"8192", "gpu-memory-utilization":"0.90",
+  //       "enable-auto-tool-choice":"", "tool-call-parser":"llama3_json"}
+  map<string, string> engine_params = 8;
 }
 
-// Where to load the model weights from.
+// Where to load the model weights from. (Wrapper kept from Tanishka's original
+// so a revision/checksum/auth-mode field can be added without a schema change.)
 message ModelSource {
-  // e.g. "gs://intern-501105-model-weights/llama"
-  string uri = 1;
+  string uri = 1;  // e.g. "gs://intern-501105-model-weights/llama"
 }
 
-// CPU, memory, and GPU requirements.
+// CPU, memory, and GPU requirements. GPU count is the single source of truth
+// for both the nodeSelector count and the nvidia.com/gpu resource limit.
 message ResourceRequirements {
-  // CPU cores, e.g. "2"
-  string cpu = 1;
+  string cpu = 1;       // CPU cores, e.g. "2"
+  string memory = 2;    // Memory, e.g. "10Gi"
+  int32 gpu_count = 3;  // Number of GPUs, e.g. 1
+  string gpu_type = 4;  // Accelerator type, e.g. "nvidia-l4"
+                        // (control plane maps -> cloud.google.com/gke-accelerator)
+}
 
-  // Memory, e.g. "10Gi"
-  string memory = 2;
-
-  // Number of GPUs, e.g. 1
-  int32 gpu_count = 3;
-
-  // GPU accelerator type, e.g. "nvidia-l4"
-  string gpu_type = 4;
+// Reference to a K8s Secret — NOT the secret value. For gs:// via Workload
+// Identity leave unset and use service_account. For hf:// gated models or
+// private registries, name a Secret that already exists in the namespace.
+message CredentialsRef {
+  string secret_name = 1;  // existing K8s Secret in the target namespace
+  string secret_key = 2;   // optional key within the Secret, e.g. "HF_TOKEN"
 }

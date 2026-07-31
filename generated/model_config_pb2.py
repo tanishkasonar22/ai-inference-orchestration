@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12model_config.proto\x12\x0cinference.v1\"\xa8\x02\n\x0bModelConfig\x12\x10\n\x08model_id\x18\x01 \x01(\t\x12)\n\x06source\x18\x02 \x01(\x0b\x32\x19.inference.v1.ModelSource\x12\x35\n\tresources\x18\x03 \x01(\x0b\x32\".inference.v1.ResourceRequirements\x12\x15\n\rreplica_count\x18\x04 \x01(\x05\x12\x15\n\rmax_model_len\x18\x05 \x01(\x05\x12\x42\n\rengine_params\x18\x06 \x03(\x0b\x32+.inference.v1.ModelConfig.EngineParamsEntry\x1a\x33\n\x11\x45ngineParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x1a\n\x0bModelSource\x12\x0b\n\x03uri\x18\x01 \x01(\t\"X\n\x14ResourceRequirements\x12\x0b\n\x03\x63pu\x18\x01 \x01(\t\x12\x0e\n\x06memory\x18\x02 \x01(\t\x12\x11\n\tgpu_count\x18\x03 \x01(\x05\x12\x10\n\x08gpu_type\x18\x04 \x01(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12model_config.proto\x12\x0cinference.v1\"\xf0\x02\n\x0bModelConfig\x12\x10\n\x08model_id\x18\x01 \x01(\t\x12)\n\x06source\x18\x02 \x01(\x0b\x32\x19.inference.v1.ModelSource\x12\x35\n\tresources\x18\x03 \x01(\x0b\x32\".inference.v1.ResourceRequirements\x12\x15\n\rreplica_count\x18\x04 \x01(\x05\x12\x11\n\tnamespace\x18\x05 \x01(\t\x12\x17\n\x0fservice_account\x18\x06 \x01(\t\x12\x31\n\x0b\x63redentials\x18\x07 \x01(\x0b\x32\x1c.inference.v1.CredentialsRef\x12\x42\n\rengine_params\x18\x08 \x03(\x0b\x32+.inference.v1.ModelConfig.EngineParamsEntry\x1a\x33\n\x11\x45ngineParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x1a\n\x0bModelSource\x12\x0b\n\x03uri\x18\x01 \x01(\t\"X\n\x14ResourceRequirements\x12\x0b\n\x03\x63pu\x18\x01 \x01(\t\x12\x0e\n\x06memory\x18\x02 \x01(\t\x12\x11\n\tgpu_count\x18\x03 \x01(\x05\x12\x10\n\x08gpu_type\x18\x04 \x01(\t\"9\n\x0e\x43redentialsRef\x12\x13\n\x0bsecret_name\x18\x01 \x01(\t\x12\x12\n\nsecret_key\x18\x02 \x01(\tb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,11 +34,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_MODELCONFIG_ENGINEPARAMSENTRY']._loaded_options = None
   _globals['_MODELCONFIG_ENGINEPARAMSENTRY']._serialized_options = b'8\001'
   _globals['_MODELCONFIG']._serialized_start=37
-  _globals['_MODELCONFIG']._serialized_end=333
-  _globals['_MODELCONFIG_ENGINEPARAMSENTRY']._serialized_start=282
-  _globals['_MODELCONFIG_ENGINEPARAMSENTRY']._serialized_end=333
-  _globals['_MODELSOURCE']._serialized_start=335
-  _globals['_MODELSOURCE']._serialized_end=361
-  _globals['_RESOURCEREQUIREMENTS']._serialized_start=363
-  _globals['_RESOURCEREQUIREMENTS']._serialized_end=451
+  _globals['_MODELCONFIG']._serialized_end=405
+  _globals['_MODELCONFIG_ENGINEPARAMSENTRY']._serialized_start=354
+  _globals['_MODELCONFIG_ENGINEPARAMSENTRY']._serialized_end=405
+  _globals['_MODELSOURCE']._serialized_start=407
+  _globals['_MODELSOURCE']._serialized_end=433
+  _globals['_RESOURCEREQUIREMENTS']._serialized_start=435
+  _globals['_RESOURCEREQUIREMENTS']._serialized_end=523
+  _globals['_CREDENTIALSREF']._serialized_start=525
+  _globals['_CREDENTIALSREF']._serialized_end=582
 # @@protoc_insertion_point(module_scope)
