@@ -1,0 +1,6 @@
+apiVersion: v2
+name: inference-control-plane
+description: gRPC control plane that deploys inference engines (vLLM, Triton) onto KServe (REQ-1.1–2.2)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
