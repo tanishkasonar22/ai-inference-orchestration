@@ -1,0 +1,36 @@
+# Default values for inference-control-plane.
+# Prerequisites this chart does NOT install: KServe + cert-manager must already
+# be present on the cluster (they're the execution layer this control plane
+# targets — see the build log, Stage 6).
+
+image:
+  repository: inference-control-plane
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 50051
+
+serviceAccount:
+  create: true
+  name: ""
+
+rbac:
+  # Grants get/list/watch/create/update/patch/delete on
+  # inferenceservices.serving.kserve.io — nothing else. No cluster-admin.
+  create: true
+
+# Namespaces the control plane is allowed to manage InferenceServices in.
+# Empty = just the release namespace. A Role + RoleBinding is created in each.
+watchNamespaces: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

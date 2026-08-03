@@ -1,0 +1,14 @@
+inference-control-plane installed into {{ .Release.Namespace }}.
+
+Reachable in-cluster at:
+  {{ include "inference-control-plane.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Prerequisites this chart assumes are already installed on the cluster:
+  - KServe (CRDs + controller + ClusterServingRuntimes)
+  - cert-manager
+
+The ServiceAccount can manage inferenceservices.serving.kserve.io in:
+{{- range (.Values.watchNamespaces | default (list .Release.Namespace)) }}
+  - {{ . }}
+{{- end }}
+No cluster-admin privileges are granted.
