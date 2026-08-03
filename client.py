@@ -22,10 +22,11 @@ import model_config_pb2 as mc
 # already-staged GCS weights, so no new download/staging is needed.
 TEST_MODEL_ID = "llama-e2e-test"
 NAMESPACE = "default"
+CONTROL_PLANE_ADDR = os.environ.get("CONTROL_PLANE_ADDR", "localhost:50051")
 
 
 def _stub():
-    channel = grpc.insecure_channel("localhost:50051")
+    channel = grpc.insecure_channel(CONTROL_PLANE_ADDR)
     return pb_grpc.InferenceEngineServiceStub(channel)
 
 
