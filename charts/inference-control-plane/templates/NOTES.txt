@@ -12,3 +12,16 @@ The ServiceAccount can manage inferenceservices.serving.kserve.io in:
   - {{ . }}
 {{- end }}
 No cluster-admin privileges are granted.
+
+{{- if .Values.tls.enabled }}
+
+mTLS is ENABLED. Callers need a client cert signed by this release's CA to
+connect at all. Extract yours with:
+  kubectl get secret {{ .Values.tls.clientSecretName }} -n {{ .Release.Namespace }} -o jsonpath='{.data.tls\.crt}' | base64 -d > tls.crt
+  kubectl get secret {{ .Values.tls.clientSecretName }} -n {{ .Release.Namespace }} -o jsonpath='{.data.tls\.key}' | base64 -d > tls.key
+  kubectl get secret {{ .Values.tls.clientSecretName }} -n {{ .Release.Namespace }} -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
+{{- else }}
+
+mTLS is DISABLED (tls.enabled=false) -- the API is unauthenticated. Set
+tls.enabled=true to require client certs.
+{{- end }}
