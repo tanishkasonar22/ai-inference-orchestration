@@ -2,9 +2,10 @@
 pipeline an end user (caller) goes through: deploy, poll status, delete.
 
 Usage:
-  python client.py deploy   # DeployInferenceEngine + poll GetDeploymentStatus
-  python client.py status   # GetDeploymentStatus once
-  python client.py delete   # DeleteDeployment (cleanup)
+  python client.py deploy      # DeployInferenceEngine + poll GetDeploymentStatus
+  python client.py configure   # ConfigureModel (runtime reconfig, Obj 3) + poll
+  python client.py status      # GetDeploymentStatus once
+  python client.py delete      # DeleteDeployment (cleanup)
 
 Assumes a port-forward to the control-plane Service is already running:
   kubectl port-forward svc/<release-name> 50051:50051 -n default
@@ -87,6 +88,48 @@ def deploy():
         time.sleep(15)
 
 
+# The single field we change to prove runtime reconfiguration (Obj 3):
+# max-model-len 8192 -> 4096. Everything else is sent UNCHANGED and COMPLETE —
+# the control plane rebuilds the whole InferenceService from this config and
+# merge-patches it, so any field we omit here would be blanked on the live CR.
+NEW_MAX_MODEL_LEN = "4096"
+
+
+def _reconfigured_config() -> mc.ModelConfig:
+    cfg = _test_config()                                 # full known-good llama config
+    cfg.engine_params["max-model-len"] = NEW_MAX_MODEL_LEN  # the one change
+    return cfg
+
+
+def configure():
+    stub = _stub()
+
+    print(f"== ConfigureModel: {TEST_MODEL_ID} — max-model-len -> "
+          f"{NEW_MAX_MODEL_LEN} (patch in place, no delete+recreate) ==")
+    req = pb.ConfigureModelRequest(
+        deployment_id=TEST_MODEL_ID,
+        namespace=NAMESPACE,
+        model_config=_reconfigured_config(),
+    )
+    resp = stub.ConfigureModel(req)
+    print("  deployment_id:", resp.deployment_id)
+    print("  status:", pb.DeploymentStatus.Name(resp.status))
+    print("  message:", resp.message)
+    if resp.status != pb.DEPLOYMENT_STATUS_ACCEPTED:
+        return
+
+    print("\n== Polling GetDeploymentStatus — the arg change rolls the predictor "
+          "pod; watch it go READY again ==")
+    for _ in range(40):  # ~10 min at 15s intervals
+        s = stub.GetDeploymentStatus(pb.GetDeploymentStatusRequest(
+            deployment_id=TEST_MODEL_ID, namespace=NAMESPACE))
+        print(f"  status={pb.DeploymentStatus.Name(s.status)} "
+              f"message={s.message!r} url={s.url!r}")
+        if s.status in (pb.DEPLOYMENT_STATUS_READY, pb.DEPLOYMENT_STATUS_FAILED):
+            break
+        time.sleep(15)
+
+
 def status():
     stub = _stub()
     resp = stub.GetDeploymentStatus(pb.GetDeploymentStatusRequest(
@@ -106,4 +149,5 @@ def delete():
 
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "deploy"
-    {"deploy": deploy, "status": status, "delete": delete}[cmd]()
+    {"deploy": deploy, "configure": configure,
+     "status": status, "delete": delete}[cmd]()
