@@ -5,7 +5,7 @@
 
 image:
   repository: inference-control-plane
-  tag: "0.2.0"
+  tag: "0.1.0"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -34,16 +34,3 @@ resources:
   limits:
     cpu: 500m
     memory: 256Mi
-
-tls:
-  # mTLS for the gRPC API (:50051). When enabled, this chart provisions a
-  # self-signed CA + server/client Certificates via cert-manager and the
-  # server requires a valid client cert to connect at all -- covers all four
-  # RPCs at the transport layer, no per-RPC auth check needed.
-  # Defaults to false so a fresh install doesn't require certs to exist
-  # first; enable once you're ready to also extract the client cert
-  # (see charts/inference-control-plane/templates/certificates.yaml).
-  enabled: false
-  caSecretName: control-plane-ca
-  serverSecretName: control-plane-server-tls
-  clientSecretName: control-plane-client-tls

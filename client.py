@@ -8,16 +8,6 @@ Usage:
 
 Assumes a port-forward to the control-plane Service is already running:
   kubectl port-forward svc/<release-name> 50051:50051 -n default
-
-If the control plane has mTLS enabled (tls.enabled=true in the chart), set:
-  TLS_CERT_DIR              dir containing tls.crt / tls.key / ca.crt
-                            (extract from the <clientSecretName> Secret --
-                            see charts/inference-control-plane/templates/NOTES.txt)
-  TLS_SERVER_NAME_OVERRIDE  needed when dialing via port-forward: you connect
-                            to localhost, but the server cert's SAN is the
-                            in-cluster DNS name, so the handshake needs the
-                            override to avoid a hostname mismatch. Not needed
-                            for in-cluster callers dialing the real Service name.
 """
 import sys, os, time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "generated"))
@@ -33,29 +23,11 @@ import model_config_pb2 as mc
 TEST_MODEL_ID = "llama-e2e-test"
 NAMESPACE = "default"
 CONTROL_PLANE_ADDR = os.environ.get("CONTROL_PLANE_ADDR", "localhost:50051")
-TLS_CERT_DIR = os.environ.get("TLS_CERT_DIR", "")
-TLS_SERVER_NAME_OVERRIDE = os.environ.get("TLS_SERVER_NAME_OVERRIDE", "")
-
-
-def _channel():
-    if not TLS_CERT_DIR:
-        return grpc.insecure_channel(CONTROL_PLANE_ADDR)
-
-    def _read(name):
-        with open(os.path.join(TLS_CERT_DIR, name), "rb") as f:
-            return f.read()
-    creds = grpc.ssl_channel_credentials(
-        root_certificates=_read("ca.crt"),
-        private_key=_read("tls.key"),
-        certificate_chain=_read("tls.crt"),
-    )
-    options = [("grpc.ssl_target_name_override", TLS_SERVER_NAME_OVERRIDE)] \
-        if TLS_SERVER_NAME_OVERRIDE else []
-    return grpc.secure_channel(CONTROL_PLANE_ADDR, creds, options=options)
 
 
 def _stub():
-    return pb_grpc.InferenceEngineServiceStub(_channel())
+    channel = grpc.insecure_channel(CONTROL_PLANE_ADDR)
+    return pb_grpc.InferenceEngineServiceStub(channel)
 
 
 def _test_config() -> mc.ModelConfig:

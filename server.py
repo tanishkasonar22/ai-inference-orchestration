@@ -18,10 +18,6 @@ from adapters import UnsupportedEngineError
 log = logging.getLogger("control-plane")
 GROUP, VERSION, PLURAL = "serving.kserve.io", "v1beta1", "inferenceservices"
 
-# Set by the Helm chart (tls.enabled=true) to a mounted dir containing
-# tls.key / tls.crt / ca.crt. Empty = plain insecure port (dev/testing only).
-TLS_CERT_DIR = os.environ.get("TLS_CERT_DIR", "")
-
 
 def _load_kube():
     try:
@@ -37,22 +33,6 @@ def _ready_status(cr: dict) -> tuple[int, str]:
                 return pb.DEPLOYMENT_STATUS_READY, "predictor Running and serving"
             return pb.DEPLOYMENT_STATUS_ACCEPTED, cond.get("message", "reconciling")
     return pb.DEPLOYMENT_STATUS_ACCEPTED, "reconciling (no Ready condition yet)"
-
-
-def _predictor_url(deployment_id: str, namespace: str, cr: dict) -> str:
-    """Real, reachable in-cluster predictor URL. KServe's own .status.url is a
-    placeholder host (e.g. *.example.com) when external ingress is disabled
-    (build log Finding 6) -- the address that actually works is the
-    predictor Service's in-cluster DNS name, the same one already proven by
-    curl against llama/qwen/deepseek/llama-e2e-test."""
-    base = f"http://{deployment_id}-predictor.{namespace}.svc.cluster.local"
-    model_format = (cr.get("spec", {}).get("predictor", {})
-                    .get("model", {}).get("modelFormat", {}).get("name", ""))
-    if model_format == "huggingface":
-        return f"{base}/openai/v1"
-    if model_format == "triton":
-        return f"{base}/v2"
-    return base
 
 
 class InferenceEngineServicer(pb_grpc.InferenceEngineServiceServicer):
@@ -139,7 +119,7 @@ class InferenceEngineServicer(pb_grpc.InferenceEngineServiceServicer):
                     status=pb.DEPLOYMENT_STATUS_NOT_FOUND, message="no such deployment")
             raise
         status, msg = _ready_status(cr)
-        url = _predictor_url(request.deployment_id, ns, cr) \
+        url = (cr.get("status", {}) or {}).get("url", "") \
             if status == pb.DEPLOYMENT_STATUS_READY else ""
         return pb.GetDeploymentStatusResponse(
             deployment_id=request.deployment_id, status=status, message=msg, url=url)
@@ -161,28 +141,13 @@ class InferenceEngineServicer(pb_grpc.InferenceEngineServiceServicer):
                 message=f"delete failed: {e.reason}")
 
 
-def _server_credentials() -> grpc.ServerCredentials:
-    def _read(name):
-        with open(os.path.join(TLS_CERT_DIR, name), "rb") as f:
-            return f.read()
-    return grpc.ssl_server_credentials(
-        [(_read("tls.key"), _read("tls.crt"))],
-        root_certificates=_read("ca.crt"),
-        require_client_auth=True,  # the "mutual" in mTLS
-    )
-
-
 def serve():
     logging.basicConfig(level=logging.INFO)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     pb_grpc.add_InferenceEngineServiceServicer_to_server(
         InferenceEngineServicer(), server)
-    if TLS_CERT_DIR:
-        server.add_secure_port("[::]:50051", _server_credentials())
-        log.info("InferenceEngineService listening on :50051 (mTLS, client cert required)")
-    else:
-        server.add_insecure_port("[::]:50051")
-        log.info("InferenceEngineService listening on :50051 (insecure -- TLS_CERT_DIR not set)")
+    server.add_insecure_port("[::]:50051")
+    log.info("InferenceEngineService listening on :50051")
     server.start()
     server.wait_for_termination()
 
