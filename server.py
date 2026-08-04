@@ -35,6 +35,29 @@ def _ready_status(cr: dict) -> tuple[int, str]:
     return pb.DEPLOYMENT_STATUS_ACCEPTED, "reconciling (no Ready condition yet)"
 
 
+# Predictor path suffix by engine: vLLM/HF exposes an OpenAI frontend; Triton v2.
+_ENGINE_PATH = {"huggingface": "/openai/v1", "triton": "/v2"}
+
+
+def _predictor_url(cr: dict) -> str:
+    """In-cluster predictor URL the caller actually uses.
+
+    KServe's status.url reports the EXTERNAL config-domain host
+    (http://<name>-<ns>.example.com), which is a placeholder on our cluster-local
+    setup. Per the build log's Finding 6 the model is reachable at
+    <name>-predictor.<ns>.svc.cluster.local from the moment the pod runs; the path
+    suffix derives from the engine (modelFormat), not from status.url.
+    """
+    meta = cr.get("metadata") or {}
+    name = meta.get("name")
+    if not name:
+        return ""
+    ns = meta.get("namespace") or "default"
+    model = ((cr.get("spec") or {}).get("predictor") or {}).get("model") or {}
+    fmt = (model.get("modelFormat") or {}).get("name", "")
+    return f"http://{name}-predictor.{ns}.svc.cluster.local{_ENGINE_PATH.get(fmt, '')}"
+
+
 class InferenceEngineServicer(pb_grpc.InferenceEngineServiceServicer):
     def __init__(self):
         _load_kube()
@@ -119,8 +142,7 @@ class InferenceEngineServicer(pb_grpc.InferenceEngineServiceServicer):
                     status=pb.DEPLOYMENT_STATUS_NOT_FOUND, message="no such deployment")
             raise
         status, msg = _ready_status(cr)
-        url = (cr.get("status", {}) or {}).get("url", "") \
-            if status == pb.DEPLOYMENT_STATUS_READY else ""
+        url = _predictor_url(cr) if status == pb.DEPLOYMENT_STATUS_READY else ""
         return pb.GetDeploymentStatusResponse(
             deployment_id=request.deployment_id, status=status, message=msg, url=url)
 
