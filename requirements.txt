@@ -1,5 +1,5 @@
 ﻿# runtime
-grpcio>=1.60
+grpcio>=1.83.0   # committed stubs need grpcio-tools 1.83.0+
 protobuf==7.35.1
 kubernetes>=29.0
 pyyaml>=6.0
