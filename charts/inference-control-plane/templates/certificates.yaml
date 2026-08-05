@@ -58,10 +58,9 @@ spec:
     - {{ include "inference-control-plane.fullname" . }}.{{ .Release.Namespace }}.svc
     - {{ include "inference-control-plane.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
 ---
-# Client cert for callers (client.py / future automation). Extract locally with:
-#   kubectl get secret {{ .Values.tls.clientSecretName }} -n {{ .Release.Namespace }} -o jsonpath='{.data.tls\.crt}' | base64 -d > tls.crt
-#   kubectl get secret {{ .Values.tls.clientSecretName }} -n {{ .Release.Namespace }} -o jsonpath='{.data.tls\.key}' | base64 -d > tls.key
-#   kubectl get secret {{ .Values.tls.clientSecretName }} -n {{ .Release.Namespace }} -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
+# Client cert for callers (client.py / future automation). See NOTES.txt for
+# the full extraction commands (bash + PowerShell) -- save into client-certs/
+# (git-ignored) and point TLS_CERT_DIR there.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
