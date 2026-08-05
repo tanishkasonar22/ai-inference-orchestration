@@ -3,3 +3,10 @@ __pycache__/
 *.pyc
 .env
 *.log
+
+# extracted mTLS client cert material
+client-certs/
+*.pem
+tls.key
+tls.crt
+ca.crt

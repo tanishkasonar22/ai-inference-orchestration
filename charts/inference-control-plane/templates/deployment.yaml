@@ -23,5 +23,20 @@ spec:
           ports:
             - name: grpc
               containerPort: 50051
+          {{- if .Values.tls.enabled }}
+          env:
+            - name: TLS_CERT_DIR
+              value: /etc/control-plane/tls
+          volumeMounts:
+            - name: server-tls
+              mountPath: /etc/control-plane/tls
+              readOnly: true
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.tls.enabled }}
+      volumes:
+        - name: server-tls
+          secret:
+            secretName: {{ .Values.tls.serverSecretName }}
+      {{- end }}
