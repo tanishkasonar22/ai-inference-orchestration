@@ -19,7 +19,23 @@ See docker-compose.ollama.yml.
   cluster-admin).
 
 ```
-docker build -t inference-control-plane:0.1.0 .
+docker build -t inference-control-plane:0.2.0 .
 helm install control-plane ./charts/inference-control-plane \
-  --set image.repository=inference-control-plane --set image.tag=0.1.0
+  --set image.repository=inference-control-plane --set image.tag=0.2.0
 ```
+
+## API auth (mTLS)
+The gRPC API (:50051) is unauthenticated by default (`tls.enabled=false`) so
+a fresh install doesn't require certs to exist first. Set `tls.enabled=true`
+to require a valid client cert on every connection (self-signed CA -> server
+cert + client cert, all via cert-manager, covers all four RPCs at the
+transport layer — see `charts/inference-control-plane/templates/certificates.yaml`).
+After enabling, extract your client cert (commands in `helm install`'s NOTES
+output) and point `client.py` at it via `TLS_CERT_DIR` (and
+`TLS_SERVER_NAME_OVERRIDE` if connecting through a port-forward rather than
+the in-cluster Service name).
+
+## GetDeploymentStatus URL
+Returns the real in-cluster predictor URL (`http://<id>-predictor.<ns>.svc.cluster.local/...`),
+not KServe's own placeholder `.status.url` (which is a non-resolvable
+`*.example.com` host while external ingress is disabled).
