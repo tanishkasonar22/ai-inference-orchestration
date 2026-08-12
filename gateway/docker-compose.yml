@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gateway-postgres
+    environment:
+      POSTGRES_DB: gateway
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: localdevpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - gateway-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  # One-off migration runner -- NOT started by `docker compose up`.
+  # Run with: docker compose run --rm migrate
+  migrate:
+    # No official pressly/goose image exists; this is the community-
+    # maintained wrapper (actively maintained, has its own repo/CI):
+    # https://github.com/kukymbr/goose-docker
+    image: ghcr.io/kukymbr/goose-docker:3.27.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    environment:
+      GOOSE_DRIVER: postgres
+      # This image wants a space-separated key=value DSN, not a postgres:// URL.
+      # Uses the compose service name "postgres" -- works the same inside
+      # Docker regardless of host OS, no host.docker.internal dance needed.
+      GOOSE_DBSTRING: "host=postgres port=5432 user=gateway password=localdevpassword dbname=gateway sslmode=disable"
+      GOOSE_COMMAND: up
+
+volumes:
+  gateway-postgres-data:

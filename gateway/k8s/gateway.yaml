@@ -1,0 +1,93 @@
+# Plain manifests, no Helm -- this service is simple enough (one Deployment,
+# one Service, no RBAC needed since it never talks to the K8s API) that a
+# chart would be pure overhead. Apply with: kubectl apply -f gateway.yaml
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-gateway
+  namespace: default
+  annotations:
+    # Workload Identity -- lets the Cloud SQL Auth Proxy sidecar authenticate
+    # as this GCP service account with no key file anywhere. Same pattern
+    # already used for GCS access to model weights (build log, Stage 4).
+    iam.gke.io/gcp-service-account: gateway-sa@intern-501105.iam.gserviceaccount.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: default
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      serviceAccountName: api-gateway
+      containers:
+        - name: gateway
+          image: us-central1-docker.pkg.dev/intern-501105/inference-images/api-gateway:0.1.0
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: MODEL_NAMESPACE
+              value: "default"
+            # Talks to the cloud-sql-proxy sidecar over localhost -- containers
+            # in the same pod share a network namespace.
+            - name: DB_HOST
+              value: "127.0.0.1"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: "gateway"
+            - name: DB_NAME
+              value: "gateway"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-db-credentials
+                  key: password
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.24.1
+          args:
+            - "--port=5432"
+            - "intern-501105:us-central1:gateway-db"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: default
+  labels:
+    app: api-gateway
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: api-gateway
